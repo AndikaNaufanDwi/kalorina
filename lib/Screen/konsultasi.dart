@@ -101,13 +101,20 @@ class _KonsultasiScreenState extends State<KonsultasiScreen> {
                     fontSize: 18,
                   ),
                 ),
-                Center(child: Konsultasi(name: "Chat AI", imgSrc: "drsherly")),
+                Center(
+                  child: Konsultasi(
+                    name: "Chat AI",
+                    imgSrc: "drsherlys",
+                    url: "https://chatgpt.com/",
+                  ),
+                ),
                 SizedBox(height: 20),
                 Center(
                   child: Konsultasi(
-                    name: "Doktor Corbuzier",
+                    name: "dr. Dedy Codeva ",
                     imgSrc: "doktor",
-                    occupation: "Mentalist",
+                    occupation: "Ahli Gizi",
+                    url: "https://wa.me/+6281381218850",
                   ),
                 ),
               ],

@@ -11,6 +11,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedGender = "Laki-laki";
+
+  Color hexToColor(String hex) {
+    hex = hex.replaceFirst('#', ''); // Hilangkan tanda #
+    return Color(int.parse('0xFF$hex')); // Tambahkan FF untuk opasitas penuh
+  }
+
   TextEditingController myHeightController = TextEditingController();
   TextEditingController myWeightController = TextEditingController();
   TextEditingController myAgeController = TextEditingController();
@@ -41,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.pushReplacementNamed(context, "/musik_tidur");
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, "/love");
+        Navigator.pushReplacementNamed(context, "/favorite");
         break;
       case 3:
         Navigator.pushReplacementNamed(context, "/konsultasi");
@@ -58,13 +64,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/bg.png',
-              fit: BoxFit.none,
-              alignment: Alignment.center,
-            ),
-          ),
+     Positioned.fill(
+  child: Opacity(
+    opacity: 0.8, // Nilai transparansi (0.0 = transparan, 1.0 = penuh)
+    child: Image.asset(
+      'assets/bg.png',
+      fit: BoxFit.cover, // Ubah dari BoxFit.none ke cover biar full screen
+      alignment: Alignment.center,
+    ),
+  ),
+),
 
           SingleChildScrollView(
             child: Padding(
@@ -82,21 +91,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2E9D9D),
                       ),
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundImage: AssetImage('assets/drsherly.png'),
-                      ),
+                      Container(
+  decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    border: Border.all(
+      color: hexToColor("#2e9d9d"), // Warna strip luar
+      width: 3, // Ketebalan strip
+    ),
+  ),
+  child: CircleAvatar(
+    radius: 25,
+    backgroundImage: AssetImage('assets/drsherly.png'),
+  ),
+)
                     ],
                   ),
                   SizedBox(height: 20),
 
                   // Info User
                   Text(
-                    "Mari kita kurangi beberapa kalori hari ini!",
+                    "Mari kita kurangi",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: hexToColor("#747474"),
+                    ),
+                  ),
+                  Text(
+                    "beberapa kalori hari ini!",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: hexToColor("#1E5172"),
                     ),
                   ),
                   SizedBox(height: 20),
@@ -140,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
 
-                        userInfoRow("Kebutuhan:", "1200", "kilokalori"),
+                        userInfoRow("Kebutuhan:", "1200", " kkal"),
                       ],
                     ),
                   ),
@@ -196,7 +222,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       Align(
                         alignment: Alignment.topRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, "/selengkapnya");
+                          },
                           child: Text(
                             "Lihat Selengkapnya",
                             style: GoogleFonts.roboto(

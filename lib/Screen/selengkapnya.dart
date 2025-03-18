@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class SelengkapnyaScreen extends StatefulWidget {
   @override
@@ -7,47 +9,54 @@ class SelengkapnyaScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<SelengkapnyaScreen> {
-  final List<String> categories = ["Veg Food", "Non-Veg Food", "Mixed"];
-  int selectedIndex = 0;
+ int selectedIndex = 0;
+  List<Map<String, dynamic>> categories = [];
+  List<Map<String, dynamic>> foods = [];
 
-  final List<Map<String, String>> foods = [
-    {
-      "name": "Sapo Tahu",
-      "desc": "Masakan vegetarian sayurrrrrrrrr asdjasjdoasjio",
-      "calories": "350 kkal",
-      "image": "buffet_food.png",
-    },
-    {
-      "name": "Ketoprak",
-      "desc": "Ketupat, tahu, bihun, lontong",
-      "calories": "290 kkal",
-      "image": "matter_paneer.png",
-    },
-    {
-      "name": "Tofu",
-      "desc": "Tofu with lettuce n tomato on plate",
-      "calories": "175 kkal",
-      "image": "tofu.png",
-    },
-    {
-      "name": "Oatmeal",
-      "desc": "Oatmeal banana and blueberry",
-      "calories": "89 kkal",
-      "image": "eatmeal.png",
-    },
-        {
-      "name": "Tofu",
-      "desc": "Tofu with lettuce n tomato on plate",
-      "calories": "175 kkal",
-      "image": "tofu.png",
-    },
-    {
-      "name": "Oatmeal",
-      "desc": "Oatmeal banana and blueberry",
-      "calories": "89 kkal",
-      "image": "eatmeal.png",
+  Future<void> fetchCategories() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:5000/kategori'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      setState(() {
+        categories = data.map((item) => {
+          "id": item['id'],
+          "name": item['nama'],
+        }).toList();
+        if (categories.isNotEmpty) {
+          fetchFoods(categories[0]['id']);
+        }
+      });
+    } else {
+      print("Failed to load categories");
     }
-  ];
+  }
+
+  Future<void> fetchFoods(int idKategori) async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:5000/makanan/kategori/$idKategori'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      setState(() {
+        foods = data.map((item) => {
+          "id": item['id'],
+          "name": item['nama'],
+          "desc": item['deskripsi']?.toString() ?? "No description available",
+          "calories": item['total_kalori']?.toString() ?? "0 kkal",
+          "image": item['image_url'] ?? "default.png",
+          "protein": item['protein']?.toString() ?? 0,
+          "fat": item['fat']?.toString() ?? 0,
+          "fibre": item['fibre']?.toString() ?? 0,
+        }).toList();
+      });
+    } else {
+      print("Failed to load foods");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+  }
 
   Color hexToColor(String hex) {
     hex = hex.replaceFirst('#', ''); // Hilangkan tanda #
@@ -83,8 +92,7 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-                                  Navigator.pushNamed(context, '/home');
-
+            Navigator.pushNamed(context, '/home');
           },
         ),
         actions: [
@@ -112,28 +120,41 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
                       int index = categories.indexOf(category);
                       return GestureDetector(
                         onTap: () {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                      fetchFoods(category['id']);
+                    },
                         child: Text(
-  category,
-  style: TextStyle(
-    fontSize: 18,
-    fontWeight: selectedIndex == index ? FontWeight.bold : FontWeight.normal,
-    color: selectedIndex == index ? Colors.teal : Colors.grey,
-    shadows: selectedIndex == index
-        ? [
-            Shadow(
-              color: Colors.black.withOpacity(0.2), // Warna bayangan
-              offset: Offset(0, 1), // Arah bayangan (x, y)
-              blurRadius: 4, // Seberapa blur bayangannya
-            ),
-          ]
-        : [],
-  ),
-),
-
+                        category['name'],
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight:
+                                selectedIndex == index
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                            color:
+                                selectedIndex == index
+                                    ? Colors.teal
+                                    : Colors.grey,
+                            shadows:
+                                selectedIndex == index
+                                    ? [
+                                      Shadow(
+                                        color: Colors.black.withOpacity(
+                                          0.2,
+                                        ), // Warna bayangan
+                                        offset: Offset(
+                                          0,
+                                          1,
+                                        ), // Arah bayangan (x, y)
+                                        blurRadius:
+                                            4, // Seberapa blur bayangannya
+                                      ),
+                                    ]
+                                    : [],
+                          ),
+                        ),
                       );
                     }).toList(),
               ),
@@ -162,66 +183,76 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
                     onTap: () {
                       Navigator.pushNamed(context, '/detail', arguments: food);
                     },
-                   child: Container(
-  decoration: BoxDecoration(
-    color: color,
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.2), // Warna bayangan
-        blurRadius: 2, // Seberapa blur bayangannya
-        spreadRadius: 1, // Seberapa jauh bayangan menyebar
-        offset: Offset(0, 2), // Posisi bayangan (x, y)
-      ),
-    ],
-  ),
-  padding: EdgeInsets.all(12),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Center(
-        child: Image.asset(
-          'assets/images/${food["image"]}',
-          height: 120,
-        ),
-      ),
-      SizedBox(height: 10),
-      Text(
-        food["name"]!,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
-          color: hexToColor("#343434"),
-          letterSpacing: 3.5 / 100,
-          height: 152 / 100,
-        ),
-      ),
-      SizedBox(height: 3),
-      Text(
-        _trimDescription(food["desc"]!),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w300,
-          color: hexToColor("#343434"),
-          letterSpacing: 3.5 / 100,
-          height: 152 / 100,
-        ),
-      ),
-      SizedBox(height: 12),
-      Text(
-        food["calories"]!,
-        style: TextStyle(
-          color: hexToColor("#E30F00"),
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ],
-  ),
-),
-
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(
+                              0.2,
+                            ), // Warna bayangan
+                            blurRadius: 2, // Seberapa blur bayangannya
+                            spreadRadius: 1, // Seberapa jauh bayangan menyebar
+                            offset: Offset(0, 2), // Posisi bayangan (x, y)
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Image.network(
+                              food["image"],
+                              height: 120,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.image_not_supported,
+                                  size: 120,
+                                );
+                              },
+                              colorBlendMode:
+                                  BlendMode
+                                      .dstATop, // Mempertahankan transparansi
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            food["name"]!,
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: hexToColor("#343434"),
+                              letterSpacing: 3.5 / 100,
+                              height: 152 / 100,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            _trimDescription(food["desc"]!),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w300,
+                              color: hexToColor("#343434"),
+                              letterSpacing: 3.5 / 100,
+                              height: 152 / 100,
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            food["calories"]!,
+                            style: TextStyle(
+                              color: hexToColor("#E30F00"),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),

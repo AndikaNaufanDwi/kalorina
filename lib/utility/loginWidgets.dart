@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 class BuildLoginBox extends StatefulWidget {
   final String hintText;
   final bool isPassword;
-  final Icon? prefixIcon; // Tambahkan prefixIcon sebagai parameter opsional
+  final Icon? prefixIcon;
+  final TextEditingController controller; // Tambahkan controller
 
   const BuildLoginBox({
     Key? key,
     required this.hintText,
+    required this.controller, // Tambahkan required controller
     this.isPassword = false,
-    this.prefixIcon, // Prefix bisa diubah saat dipanggil
+    this.prefixIcon,
   }) : super(key: key);
 
   @override
@@ -31,6 +33,7 @@ class _BuildLoginBoxState extends State<BuildLoginBox> {
       width: 300,
       height: 50,
       child: TextField(
+        controller: widget.controller, // Tambahkan controller
         obscureText: _obscureText,
         decoration: InputDecoration(
           hintText: widget.hintText,

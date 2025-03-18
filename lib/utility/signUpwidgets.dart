@@ -4,12 +4,14 @@ class BuildSignUpBox extends StatefulWidget {
   final String hintText;
   final bool isPassword;
   final Icon? prefixIcon;
+  final TextEditingController? controller; // Tambahkan controller
 
   const BuildSignUpBox({
     Key? key,
     required this.hintText,
     this.isPassword = false,
-    this.prefixIcon, // Prefix bisa diubah saat dipanggil
+    this.prefixIcon,
+    this.controller, // Inisialisasi controller
   }) : super(key: key);
 
   @override
@@ -31,6 +33,7 @@ class _BuildSignUpBoxState extends State<BuildSignUpBox> {
       width: 300,
       height: 50,
       child: TextField(
+        controller: widget.controller, // Gunakan controller di sini
         obscureText: _obscureText,
         decoration: InputDecoration(
           hintText: widget.hintText,
@@ -42,20 +45,19 @@ class _BuildSignUpBoxState extends State<BuildSignUpBox> {
           ),
           prefixIcon: widget.prefixIcon,
           contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          suffixIcon:
-              widget.isPassword
-                  ? IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.black54,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  )
-                  : null,
+          suffixIcon: widget.isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black54,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
+              : null,
         ),
       ),
     );

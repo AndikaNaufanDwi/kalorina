@@ -16,7 +16,7 @@ class CustomNavbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CurvedNavigationBar(
       index: selectedIndex,
-      height: 55,
+      height: 60,
       backgroundColor: Colors.transparent,
       color: Colors.white,
       buttonBackgroundColor: Colors.teal,
@@ -24,23 +24,28 @@ class CustomNavbar extends StatelessWidget {
       items: List.generate(5, (index) {
         bool isSelected = selectedIndex == index;
         Color iconColor = isSelected ? Colors.white : Colors.grey;
-        Color textColor = isSelected ? Colors.white : Color(0xFF8D8D8D);
+        Color textColor = isSelected ? Colors.teal : Color(0xFF8D8D8D);
 
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            index == 2
-                ? Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.teal,
-                  ),
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.favorite, color: Colors.white),
-                )
-                : Icon(_getIcon(index), color: iconColor, size: 22),
-            SizedBox(height: 4),
-            if (!isSelected)
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected ? Colors.teal : Colors.transparent,
+                ),
+                padding: isSelected ? EdgeInsets.all(8) : EdgeInsets.zero,
+                child: Icon(
+                  _getIcon(index),
+                  color: isSelected ? Colors.white : Colors.grey,
+                  size: index == 2 ? 28 : 24, // Floating Action Button style di tengah
+                ),
+              ),
+              SizedBox(height: 4),
               Text(
                 _getLabel(index),
                 style: GoogleFonts.poppins(
@@ -49,7 +54,8 @@ class CustomNavbar extends StatelessWidget {
                   color: textColor,
                 ),
               ),
-          ],
+            ],
+          ),
         );
       }),
       onTap: onItemTapped,
@@ -59,13 +65,13 @@ class CustomNavbar extends StatelessWidget {
   IconData _getIcon(int index) {
     switch (index) {
       case 0:
-        return Icons.restaurant;
+        return Icons.home;
       case 1:
-        return Icons.nights_stay;
+        return Icons.music_note;
       case 2:
         return Icons.favorite;
       case 3:
-        return Icons.chat_bubble;
+        return Icons.chat;
       case 4:
         return Icons.person;
       default:
@@ -78,13 +84,13 @@ class CustomNavbar extends StatelessWidget {
       case 0:
         return "Beranda";
       case 1:
-        return "Musik Tidur";
+        return "Musik";
       case 2:
-        return "Favorite";
+        return "Favorit";
       case 3:
-        return "Konsultasi";
+        return "Chat";
       case 4:
-        return "Profile";
+        return "Profil";
       default:
         return "";
     }

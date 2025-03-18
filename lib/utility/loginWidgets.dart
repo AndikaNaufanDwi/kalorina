@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class BuildLoginBox extends StatefulWidget {
   final String hintText;
   final bool isPassword;
-  final Icon? prefixIcon;
+  final Icon? prefixIcon; // Tambahkan prefixIcon sebagai parameter opsional
 
   const BuildLoginBox({
     Key? key,
@@ -40,7 +40,7 @@ class _BuildLoginBoxState extends State<BuildLoginBox> {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          prefixIcon: widget.prefixIcon,
+          prefixIcon: widget.prefixIcon, // Gunakan prefixIcon dari parameter
           contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           suffixIcon:
               widget.isPassword

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:projects_sehatin/utility/onBoardBottom.dart';
 import 'package:projects_sehatin/utility/onBoardPage.dart';
@@ -8,20 +9,34 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   int _currentIndex = 0;
+  Timer? _timer;
 
-  void _nextPage() {
-    if (_currentIndex < 2) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+      if (_currentIndex < 2) {
+        _currentIndex++;
+      } else {
+        _currentIndex = 0; // Loop back to first page
+      }
+      _pageController.animateToPage(
+        _currentIndex,
+        duration: Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-    }
+    });
   }
 
-  void _skip() {
-    _pageController.jumpToPage(2);
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,13 +66,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               currentIndex: _currentIndex,
               onNext: () {
                 setState(() {
-                  if (_currentIndex < 2) _currentIndex++;
+                  if (_currentIndex < 2) {
+                    _currentIndex++;
+                  } else {
+                    _currentIndex = 0; // Loop back to first page
+                  }
                 });
+                _pageController.animateToPage(
+                  _currentIndex,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
               },
               onSkip: () {
                 setState(() {
                   _currentIndex = 2;
                 });
+                _pageController.jumpToPage(2);
               },
               textList: ["Jaga Kalori Harianmu", "Bebas Insomnia", "HaloGizi"],
               textList2: [

@@ -6,6 +6,7 @@ Widget userInfoRow(
   String label,
   String value,
   String kilokalori, {
+  double sizedBoxWidth = 105.0,
   Color valueColor = Colors.black,
 }) {
   return Padding(
@@ -14,7 +15,7 @@ Widget userInfoRow(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         customText(label, fontWeight: FontWeight.bold, color: Colors.black),
-        SizedBox(width: 105),
+        SizedBox(width: sizedBoxWidth), // Used parameter here
         customText(
           value,
           color: Color(0xFF2E9D9D),
@@ -81,7 +82,7 @@ Widget userInfoInput(
   String label,
   TextEditingController Function() getController,
   String unit,
-  double paddingText,
+  String hint,
 ) {
   return Padding(
     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
@@ -108,8 +109,10 @@ Widget userInfoInput(
                     fontWeight: FontWeight.normal,
                   ),
                   decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey),
                     contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: 10,
                       vertical: 0,
                     ),
                     border: OutlineInputBorder(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:projects_sehatin/utility/bottomNavBar.dart';
 
 class FavoriteScreen extends StatefulWidget {
@@ -171,66 +170,61 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    extendBodyBehindAppBar: true, // Agar background menutupi AppBar
-    body: Stack(
-      children: [
-        /// **Background Image**
-        Positioned.fill(
-          child: Image.asset(
-            'assets/bg.png',
-            fit: BoxFit.cover, // Menutupi seluruh layar
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true, // Agar background menutupi AppBar
+      body: Stack(
+        children: [
+          /// **Background Image**
+          Positioned.fill(
+            child: Image.asset(
+              'assets/bg.png',
+              fit: BoxFit.cover, // Menutupi seluruh layar
+            ),
           ),
-        ),
 
-        /// **Konten Utama**
-        /// 
-    
-        Padding(
-          padding: EdgeInsets.all(16.0),
-          child:  ListView(
-            children: foodCategories.keys.map((category) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: hexToColor("#343434"),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    height: 250,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: foodCategories[category]!.length,
-                      itemBuilder: (context, index) {
-                        return _buildFoodCard(
-                          foodCategories[category]![index],
-                          cardHeight: 230,
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                ],
-              );
-            }).toList(),
+          /// **Konten Utama**
+          ///
+          Padding(
+            padding: EdgeInsets.all(16.0),
+            child: ListView(
+              children:
+                  foodCategories.keys.map((category) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: hexToColor("#343434"),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Container(
+                          height: 250,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: foodCategories[category]!.length,
+                            itemBuilder: (context, index) {
+                              return _buildFoodCard(
+                                foodCategories[category]![index],
+                                cardHeight: 230,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    );
+                  }).toList(),
+            ),
           ),
-        ),
-      ],
-    ),
-    bottomNavigationBar: CustomNavbar(
-      selectedIndex: _selectedIndex,
-      onItemTapped: _onItemTapped,
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildFoodCard(Map<String, String> food, {double cardHeight = 230}) {
     return SizedBox(

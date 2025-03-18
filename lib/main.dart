@@ -16,12 +16,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-        "/home": (context) => HomeScreen(),
-        // "/musik_tidur": (context) => MusikTidurScreen(),
-        "/konsultasi": (context) => KonsultasiScreen(), // Add this route
-        // "/profile": (context) => ProfileScreen(),
-      },
       debugShowCheckedModeBanner: false,
       title: 'Sehat-in',
       theme: ThemeData(

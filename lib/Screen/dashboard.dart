@@ -131,6 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
+                      boxShadow: [BoxShadow(
+                        color: Colors.black.withAlpha(128),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      )],
                       color: Colors.white.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(16),
                     ),

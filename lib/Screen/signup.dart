@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:projects_sehatin/Screen/dashboard.dart';
 import 'package:projects_sehatin/Screen/login.dart';
 import 'package:projects_sehatin/utility/signUpwidgets.dart';
@@ -10,7 +12,60 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  bool isChecked = false;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _repeatPasswordController = TextEditingController();
+
+  Future<void> _signUp() async {
+    if (_passwordController.text != _repeatPasswordController.text) {
+      _showDialog("Error", "Passwords tidak sama!");
+      return;
+    }
+
+    var url = Uri.parse("http://127.0.0.1:5000/users");
+    var response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "nama": _usernameController.text,
+        "email": _emailController.text,
+        "password": _passwordController.text
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      _showDialog("Success", "Sign up berhasil", success: true);
+    } else {
+      _showDialog("Error", "Sign up Gagal: ${response.body}");
+    }
+  }
+
+  void _showDialog(String title, String message, {bool success = false}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (success) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()),
+                  );
+                }
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,44 +78,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               customText("Sign Up", fontSize: 30, fontWeight: FontWeight.bold),
-
               SizedBox(height: 8),
-              customText(
-                "Maintain your calories and stay healthy!",
-                fontSize: 15,
-              ),
+              customText("Maintain your calories and stay healthy!", fontSize: 15),
               SizedBox(height: 30),
-              // Email Field
               Column(
                 children: [
                   BuildSignUpBox(
+                    controller: _usernameController,
+                    prefixIcon: Icon(Icons.person_outline),
+                    hintText: "Nama Pengguna",
+                  ),
+                  SizedBox(height: 10),
+                  BuildSignUpBox(
+                    controller: _emailController,
                     prefixIcon: Icon(Icons.email_outlined),
                     hintText: "Email",
                   ),
                   SizedBox(height: 10),
                   BuildSignUpBox(
+                    controller: _passwordController,
                     prefixIcon: Icon(Icons.lock_outline),
                     hintText: "New Password",
                     isPassword: true,
                   ),
                   SizedBox(height: 10),
                   BuildSignUpBox(
+                    controller: _repeatPasswordController,
                     prefixIcon: Icon(Icons.lock_outline),
                     hintText: "Repeat Password",
                     isPassword: true,
                   ),
                 ],
               ),
-              SizedBox(height: 10),
               SizedBox(height: 60),
-              // Login Button
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
-                },
+                onPressed: _signUp,
                 child: customText(
                   "Sign Up",
                   fontWeight: FontWeight.bold,

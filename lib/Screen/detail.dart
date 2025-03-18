@@ -1,11 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
+  @override
+  _DetailScreenState createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  String? _accessToken;
+
+  Future<void> _loadAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _accessToken = prefs.getString('access_token');
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccessToken();
+  }
+
+  Future<void> _likeFood(int makananId) async {
+    if (_accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Token tidak tersedia, silakan login ulang!")),
+      );
+      return;
+    }
+
+    final url = Uri.parse('http://127.0.0.1:5000/makanan/$makananId/like');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Berhasil menambahkan ke favorit!")),
+        );
+          Navigator.pushNamed(context, '/favorite');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal menambahkan ke favorit: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Terjadi kesalahan: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final food =
-        ModalRoute.of(context)!.settings.arguments as Map<String, String>;
+    final food = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
     Color hexToColor(String hex) {
       hex = hex.replaceFirst('#', '');
@@ -44,105 +102,93 @@ class DetailScreen extends StatelessWidget {
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image.asset(
-                  'assets/images/${food["image"]}',
-                  height: 280,
-                  width: 280,
+                child: Image.network(
+                  food["image"],
+                  height: 220,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.image_not_supported,
+                      size: 200,
+                    );
+                  },
+                  colorBlendMode: BlendMode.dstATop,
                 ),
               ),
             ],
           ),
           Positioned(
-  top: MediaQuery.of(context).size.height * 0.47,
-  left: 0,
-  right: 0,
-  child: Container(
-    height: MediaQuery.of(context).size.height * 0.53,
-    padding: const EdgeInsets.all(20),
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(30),
-        // topRight: Radius.circular(30),
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 10),
-
-        // Nutrition Info
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _nutritionInfo("Calorie", "5 kkal", Colors.red),
-            _nutritionInfo("Protein", "7 gm", Colors.black),
-            _nutritionInfo("Fat", "20 gm", Colors.blue),
-            _nutritionInfo("Fibre", "5 gm", Colors.green),
-          ],
-        ),
-
-        const SizedBox(height: 30),
-
-        // Deskripsi Title
-        const Text(
-          "Deskripsi :",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-
-        // Deskripsi Content
-        const Expanded(
-          child: SingleChildScrollView(
-            child: Text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ullamcorper sed vulputate lobortis interdum tempor odio. Cras dolor ultrices et blandit sem non, commodo. "
-              "Aliquet sagittis lorem etiam in molestie in. Ornare non cursus diam turpis vitae. \n\n"
-              "Aliquet sagittis lorem etiam in molestie in. Ornare non cursus diam turpis vitae.",
-              textAlign: TextAlign.justify,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ),
-        ),
-        
-
-        const SizedBox(height: 20),
-
-        // Button
-        Center(
-          child: SizedBox(
-            width: 220,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: hexToColor("#2E9D9D"),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+            top: MediaQuery.of(context).size.height * 0.47,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.53,
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
                 ),
-                minimumSize: const Size(0, 50),
               ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/favorite');
-              },
-              child: const Text(
-                "Tambah ke Favorit",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _nutritionInfo("Calorie", food["calories"] + " kkal", Colors.red),
+                      _nutritionInfo("Protein", food["protein"] + " gm", Colors.black),
+                      _nutritionInfo("Fat", food["fat"] + " gm", Colors.blue),
+                      _nutritionInfo("Fibre", food["fibre"] + " gm", Colors.green),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Deskripsi :",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Text(
+                        food["desc"]?.toString() ?? "Deskripsi tidak tersedia",
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: hexToColor("#2E9D9D"),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          minimumSize: const Size(0, 50),
+                        ),
+                        onPressed: () => _likeFood(food['id']),
+                        child: const Text(
+                          "Tambah ke Favorit",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  ),
-),
-
         ],
       ),
     );
   }
 
-  Widget _nutritionInfo(String label, String value, Color color, [IconData? icon]) {
+  Widget _nutritionInfo(String label, String value, Color color) {
     return Column(
       children: [
-
         SizedBox(height: 2),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey)),
         SizedBox(height: 1),

@@ -182,6 +182,7 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
                   return GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(context, '/detail', arguments: food);
+                      print(food);
                     },
                     child: Container(
                       decoration: BoxDecoration(

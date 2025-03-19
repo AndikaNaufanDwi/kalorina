@@ -14,11 +14,16 @@ class CustomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     Color hexToColor(String hex) {
+    hex = hex.replaceFirst('#', ''); // Hilangkan tanda #
+    return Color(int.parse('0xFF$hex')); // Tambahkan FF untuk opasitas penuh
+  }
+
     return CurvedNavigationBar(
       index: selectedIndex,
       height: 55,
       backgroundColor: Colors.transparent,
-      color: Colors.white,
+      color: selectedIndex == 1 ? hexToColor("#202C31") : Colors.white,
       buttonBackgroundColor: Colors.teal,
       animationDuration: Duration(milliseconds: 300),
       items: List.generate(5, (index) {

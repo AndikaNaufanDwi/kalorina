@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:projects_sehatin/utility/bottomNavBar.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class FavoriteScreen extends StatefulWidget {
   @override
@@ -8,10 +12,141 @@ class FavoriteScreen extends StatefulWidget {
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
   int _selectedIndex = 2;
+  String? _accessToken;
+  Map<String, List<Map<String, String>>> foodCategories = {
+    "Veg Food": [],
+    "Non-Veg Food": [],
+    "Mixed": [],
+  };
+  bool isLoading = true;
+
+  String _trimDescription(String desc) {
+    print(desc);
+    List<String> words = desc.split(" ");
+    if (words.length > 14) {
+      return words.take(18).join(" ") + "..."; // Ambil 18 kata + '...'
+    }
+    return desc;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccessToken();
+  }
+
+  Future<void> _loadAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _accessToken = prefs.getString('access_token');
+    });
+
+    if (_accessToken != null) {
+      await _fetchFavoriteFoods();
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+void _deleteFood(BuildContext context, int makananId) async {
+  final String baseUrl = "http://127.0.0.1:5000";
+  final String url = "$baseUrl/makanan/$makananId/like";
+  try {
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Navigator.of(context).pop(); // Tutup modal setelah sukses
+    } else {
+      _showErrorDialog(context, "Gagal menghapus makanan");
+    }
+  } catch (e) {
+    _showErrorDialog(context, "Terjadi kesalahan: $e");
+  }
+}
+
+    void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Error"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+Future<void> _fetchFavoriteFoods() async {
+  final url = Uri.parse("http://127.0.0.1:5000/makanan/favorite");
+
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $_accessToken",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> foods = json.decode(response.body);
+
+      setState(() {
+        for (var food in foods) {
+          if (food["kategori_id"] == null || food["id"] == null || food["nama"] == null) {
+            continue; // Skip jika ada data yang tidak valid
+          }
+
+          String category = _mapCategory(food["kategori_id"]);
+
+          // Pastikan kategori tersedia di foodCategories
+          foodCategories.putIfAbsent(category, () => []);
+
+          foodCategories[category]?.add({
+            "id": food["id"].toString(),
+            "name": food["nama"],
+            "desc": food["deskripsi"] ?? "",
+            "calories": "${food["total_kalori"] ?? 0} kkal",
+            "image": food["image_url"] ?? "default.png",
+          });
+        }
+      });
+    } else {
+      print("Gagal mengambil makanan favorit: ${response.body}");
+    }
+  } catch (e) {
+    print("Error saat mengambil makanan favorit: $e");
+  }
+}
+
+
+  String _mapCategory(int kategoriId) {
+    switch (kategoriId) {
+      case 1:
+        return "Veg Food";
+      case 2:
+        return "Non-Veg Food";
+      default:
+        return "Mixed";
+    }
+  }
 
   Color hexToColor(String hex) {
-    hex = hex.replaceFirst('#', ''); // Hilangkan tanda #
-    return Color(int.parse('0xFF$hex')); // Tambahkan FF untuk opasitas penuh
+    hex = hex.replaceFirst('#', '');
+    return Color(int.parse('0xFF$hex'));
   }
 
   void _onItemTapped(int index) {
@@ -38,69 +173,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
   }
 
-  final Map<String, List<Map<String, String>>> foodCategories = {
-    "Veg Food": [
-      {
-        "name": "Chopped Salad",
-        "desc": "Romaine lettuce Greek salad",
-        "calories": "120 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Tofu",
-        "desc": "Green papaya salad Thai cuisine Salted",
-        "calories": "175 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Avocado Toast",
-        "desc": "Whole grain toast with avocado",
-        "calories": "210 kkal",
-        "image": "eatmeal.png",
-      },
-    ],
-    "Non-Veg Food": [
-      {
-        "name": "Roast Chicken",
-        "desc": "Roasted chicken with lemons",
-        "calories": "300 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Sate Ayam",
-        "desc": "Sate ayam dengan bumbu kacang",
-        "calories": "250 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Grilled Fish",
-        "desc": "Grilled salmon with lemon butter",
-        "calories": "200 kkal",
-        "image": "eatmeal.png",
-      },
-    ],
-    "Mixed": [
-      {
-        "name": "Chicken Salad",
-        "desc": "Mixed salad with grilled chicken",
-        "calories": "180 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Seafood Pasta",
-        "desc": "Pasta with shrimp and calamari",
-        "calories": "320 kkal",
-        "image": "eatmeal.png",
-      },
-      {
-        "name": "Burger",
-        "desc": "Whole grain bun with beef patty",
-        "calories": "400 kkal",
-        "image": "eatmeal.png",
-      },
-    ],
-  };
-
   void _showDeleteConfirmation(BuildContext context, String foodName) {
     showModalBottomSheet(
       context: context,
@@ -114,11 +186,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Ilustrasi (Gunakan Image.asset jika memiliki gambar lokal)
               Image.asset('assets/HapusFavorit.png', height: 150),
               SizedBox(height: 20),
-
-              // Teks Konfirmasi
               Text(
                 "Apakah anda yakin ingin menghapus?",
                 style: TextStyle(
@@ -129,12 +198,11 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20),
-
-              // Tombol "Ya, Hapus"
               GestureDetector(
                 onTap: () {
-                  // Logika hapus item favorit
-                  Navigator.of(context).pop();
+                          Navigator.pushReplacementNamed(context, "/favorite");
+                  _deleteFood(context, int.parse(foodName));
+                  print("Menghapus $foodName");
                 },
                 child: Text(
                   "Ya, Hapus",
@@ -146,8 +214,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 ),
               ),
               SizedBox(height: 10),
-
-              // Tombol "Tidak"
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).pop();
@@ -171,62 +237,74 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool hasFavorites = foodCategories.values.any((list) => list.isNotEmpty);
+
     return Scaffold(
-      extendBodyBehindAppBar: true, // Agar background menutupi AppBar
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          /// **Background Image**
           Positioned.fill(
             child: Image.asset(
               'assets/bg.png',
-              fit: BoxFit.cover, // Menutupi seluruh layar
+              fit: BoxFit.cover,
             ),
           ),
-
-          /// **Konten Utama**
-          ///
           Padding(
             padding: EdgeInsets.all(16.0),
-            child: ListView(
-              children:
-                  foodCategories.keys.map((category) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category,
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : hasFavorites
+                    ? ListView(
+                        children: foodCategories.entries
+                            .where((entry) => entry.value.isNotEmpty)
+                            .map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: hexToColor("#343434"),
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Container(
+                                height: 250,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: entry.value.length,
+                                  itemBuilder: (context, index) {
+                                    return _buildFoodCard(
+                                      entry.value[index],
+                                      cardHeight: 280,
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                            ],
+                          );
+                        }).toList(),
+                      )
+                    : Center(
+                        child: Text(
+                          "Belum ada makanan favorit user",
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: hexToColor("#343434"),
+                            color: Colors.black54,
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Container(
-                          height: 250,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: foodCategories[category]!.length,
-                            itemBuilder: (context, index) {
-                              return _buildFoodCard(
-                                foodCategories[category]![index],
-                                cardHeight: 230,
-                              );
-                            },
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                    );
-                  }).toList(),
-            ),
+                      ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFoodCard(Map<String, String> food, {double cardHeight = 230}) {
+  Widget _buildFoodCard(Map<String, String> food, {double cardHeight = 280}) {
     return SizedBox(
       width: 180,
       height: cardHeight,
@@ -244,7 +322,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               alignment: Alignment.topRight,
               child: GestureDetector(
                 onTap: () {
-                  _showDeleteConfirmation(context, food['name']!);
+                  print(food);
+                  _showDeleteConfirmation(context, food['id']!);
                 },
                 child: Icon(Icons.favorite, color: Colors.red, size: 24),
               ),
@@ -255,9 +334,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
-                    child: Image.asset(
-                      'assets/images/${food["image"]}',
-                      height: 90,
+                    child: Image.network(
+                      food['image'] ??
+                          "https://png.pngtree.com/png-clipart/20220430/ourmid/pngtree-makanan-indonesia-nasi-goreng-png-image_4559599.png",
+                      height: 100,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(Icons.image_not_supported, size: 120);
+                      },
                     ),
                   ),
                   SizedBox(height: 8),
@@ -270,10 +353,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     ),
                   ),
                   SizedBox(height: 4),
-                  Text(
-                    food['desc']!,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
-                  ),
+                 Text(
+                            _trimDescription(food["desc"]!),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w300,
+                              color: hexToColor("#FFFFFF"),
+                              letterSpacing: 3.5 / 100,
+                              height: 152 / 100,
+                            ),
+                          ),
                 ],
               ),
             ),

@@ -4,6 +4,8 @@ import 'package:projects_sehatin/Screen/dashboard.dart';
 import 'package:projects_sehatin/Screen/konsultasi.dart';
 import 'package:projects_sehatin/Screen/detail.dart';
 import 'package:projects_sehatin/Screen/favoriteFood.dart';
+import 'package:projects_sehatin/Screen/playlist.dart';
+import 'package:projects_sehatin/Screen/favplaylist.dart';
 import 'package:projects_sehatin/Screen/selengkapnya.dart';
 import 'package:projects_sehatin/Screen/splash.dart';
 import 'package:projects_sehatin/Screen/profile.dart';
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/selengkapnya': (context) => SelengkapnyaScreen(),
         '/favorite': (context) => FavoriteScreen(),
         '/profile': (context) => ProfileScreen(),
+        '/playlist': (context) => Playlist()
       },
     );
   }

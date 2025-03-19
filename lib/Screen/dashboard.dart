@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projects_sehatin/Screen/favoriteFood.dart';
 import 'package:projects_sehatin/Screen/konsultasi.dart';
+import 'package:projects_sehatin/Screen/playlist.dart';
 import 'package:projects_sehatin/Screen/profile.dart';
 import 'package:projects_sehatin/utility/bmi_API.dart';
 import 'package:projects_sehatin/utility/bottomNavBar.dart';
@@ -84,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _getScreen(int index) {
     switch (index) {
       case 1:
-        return FavoriteScreen();
+        return Playlist();
       case 2:
         return FavoriteScreen();
       case 3:

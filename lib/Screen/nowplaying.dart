@@ -1,7 +1,11 @@
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:projects_sehatin/Screen/dashboard.dart';
+import 'package:projects_sehatin/Screen/favoriteFood.dart';
 import 'package:projects_sehatin/Screen/playlist.dart';
+import 'package:projects_sehatin/utility/bottomNavBar.dart';
 
 class NowPlayingPage extends StatefulWidget {
   final Map<String, String> song;
@@ -23,6 +27,14 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
     super.initState();
     _initAudio();
   }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  int _selectedIndex = 1;
 
   Future<void> _initAudio() async {
     try {
@@ -65,12 +77,23 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context)=>Playlist())),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Scaffold(body: HomeScreen(i: 1)),
+              ),
+            );
+          },
         ),
         centerTitle: true,
         title: Text(
           "Putar Sekarang",
-          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Padding(
@@ -90,7 +113,11 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
             const SizedBox(height: 20),
             Text(
               widget.song['title']!,
-              style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
@@ -124,7 +151,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-               
                 const SizedBox(width: 20),
                 GestureDetector(
                   onTap: togglePlayPause,
@@ -139,7 +165,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                   ),
                 ),
                 const SizedBox(width: 20),
-            
               ],
             ),
           ],

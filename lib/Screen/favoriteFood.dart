@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:projects_sehatin/Screen/dashboard.dart';
 import 'package:projects_sehatin/utility/bottomNavBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,29 +50,29 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     });
   }
 
-void _deleteFood(BuildContext context, int makananId) async {
-  final String baseUrl = "http://127.0.0.1:5000";
-  final String url = "$baseUrl/makanan/$makananId/like";
-  try {
-    final response = await http.delete(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_accessToken',
-      },
-    );
+  void _deleteFood(BuildContext context, int makananId) async {
+    final String baseUrl = "https://6cc5-210-210-144-170.ngrok-free.app";
+    final String url = "$baseUrl/makanan/$makananId/like";
+    try {
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_accessToken',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      Navigator.of(context).pop(); // Tutup modal setelah sukses
-    } else {
-      _showErrorDialog(context, "Gagal menghapus makanan");
+      if (response.statusCode == 200) {
+        Navigator.of(context).pop(); // Tutup modal setelah sukses
+      } else {
+        _showErrorDialog(context, "Gagal menghapus makanan");
+      }
+    } catch (e) {
+      _showErrorDialog(context, "Terjadi kesalahan: $e");
     }
-  } catch (e) {
-    _showErrorDialog(context, "Terjadi kesalahan: $e");
   }
-}
 
-    void _showErrorDialog(BuildContext context, String message) {
+  void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (context) {
@@ -88,50 +89,53 @@ void _deleteFood(BuildContext context, int makananId) async {
       },
     );
   }
-  
-Future<void> _fetchFavoriteFoods() async {
-  final url = Uri.parse("http://127.0.0.1:5000/makanan/favorite");
 
-  try {
-    final response = await http.get(
-      url,
-      headers: {
-        "Authorization": "Bearer $_accessToken",
-        "Content-Type": "application/json",
-      },
+  Future<void> _fetchFavoriteFoods() async {
+    final url = Uri.parse(
+      "https://6cc5-210-210-144-170.ngrok-free.app/makanan/favorite",
     );
 
-    if (response.statusCode == 200) {
-      List<dynamic> foods = json.decode(response.body);
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $_accessToken",
+          "Content-Type": "application/json",
+        },
+      );
 
-      setState(() {
-        for (var food in foods) {
-          if (food["kategori_id"] == null || food["id"] == null || food["nama"] == null) {
-            continue; // Skip jika ada data yang tidak valid
+      if (response.statusCode == 200) {
+        List<dynamic> foods = json.decode(response.body);
+
+        setState(() {
+          for (var food in foods) {
+            if (food["kategori_id"] == null ||
+                food["id"] == null ||
+                food["nama"] == null) {
+              continue; // Skip jika ada data yang tidak valid
+            }
+
+            String category = _mapCategory(food["kategori_id"]);
+
+            // Pastikan kategori tersedia di foodCategories
+            foodCategories.putIfAbsent(category, () => []);
+
+            foodCategories[category]?.add({
+              "id": food["id"].toString(),
+              "name": food["nama"],
+              "desc": food["deskripsi"] ?? "",
+              "calories": "${food["total_kalori"] ?? 0} kkal",
+              "image": food["image_url"] ?? "default.png",
+            });
           }
-
-          String category = _mapCategory(food["kategori_id"]);
-
-          // Pastikan kategori tersedia di foodCategories
-          foodCategories.putIfAbsent(category, () => []);
-
-          foodCategories[category]?.add({
-            "id": food["id"].toString(),
-            "name": food["nama"],
-            "desc": food["deskripsi"] ?? "",
-            "calories": "${food["total_kalori"] ?? 0} kkal",
-            "image": food["image_url"] ?? "default.png",
-          });
-        }
-      });
-    } else {
-      print("Gagal mengambil makanan favorit: ${response.body}");
+        });
+      } else {
+        print("Gagal mengambil makanan favorit: ${response.body}");
+      }
+    } catch (e) {
+      print("Error saat mengambil makanan favorit: $e");
     }
-  } catch (e) {
-    print("Error saat mengambil makanan favorit: $e");
   }
-}
-
 
   String _mapCategory(int kategoriId) {
     switch (kategoriId) {
@@ -147,30 +151,6 @@ Future<void> _fetchFavoriteFoods() async {
   Color hexToColor(String hex) {
     hex = hex.replaceFirst('#', '');
     return Color(int.parse('0xFF$hex'));
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, "/home");
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, "/musik_tidur");
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, "/favorite");
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, "/konsultasi");
-        break;
-      case 4:
-        Navigator.pushReplacementNamed(context, "/profile");
-        break;
-    }
   }
 
   void _showDeleteConfirmation(BuildContext context, String foodName) {
@@ -200,7 +180,7 @@ Future<void> _fetchFavoriteFoods() async {
               SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
-                          Navigator.pushReplacementNamed(context, "/favorite");
+                  Navigator.pushReplacementNamed(context, "/favorite");
                   _deleteFood(context, int.parse(foodName));
                   print("Menghapus $foodName");
                 },
@@ -240,64 +220,63 @@ Future<void> _fetchFavoriteFoods() async {
     bool hasFavorites = foodCategories.values.any((list) => list.isNotEmpty);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'assets/bg.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/bg.png', fit: BoxFit.cover),
           ),
           Padding(
             padding: EdgeInsets.all(16.0),
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : hasFavorites
+            child:
+                isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : hasFavorites
                     ? ListView(
-                        children: foodCategories.entries
-                            .where((entry) => entry.value.isNotEmpty)
-                            .map((entry) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: hexToColor("#343434"),
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Container(
-                                height: 250,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: entry.value.length,
-                                  itemBuilder: (context, index) {
-                                    return _buildFoodCard(
-                                      entry.value[index],
-                                      cardHeight: 280,
-                                    );
-                                  },
-                                ),
-                              ),
-                              SizedBox(height: 20),
-                            ],
-                          );
-                        }).toList(),
-                      )
+                      children:
+                          foodCategories.entries
+                              .where((entry) => entry.value.isNotEmpty)
+                              .map((entry) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      entry.key,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: hexToColor("#343434"),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    Container(
+                                      height: 250,
+                                      child: ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        itemCount: entry.value.length,
+                                        itemBuilder: (context, index) {
+                                          return _buildFoodCard(
+                                            entry.value[index],
+                                            cardHeight: 280,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                  ],
+                                );
+                              })
+                              .toList(),
+                    )
                     : Center(
-                        child: Text(
-                          "Belum ada makanan favorit user",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black54,
-                          ),
+                      child: Text(
+                        "Belum ada makanan favorit user",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
                         ),
                       ),
+                    ),
           ),
         ],
       ),
@@ -353,18 +332,18 @@ Future<void> _fetchFavoriteFoods() async {
                     ),
                   ),
                   SizedBox(height: 4),
-                 Text(
-                            _trimDescription(food["desc"]!),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w300,
-                              color: hexToColor("#FFFFFF"),
-                              letterSpacing: 3.5 / 100,
-                              height: 152 / 100,
-                            ),
-                          ),
+                  Text(
+                    _trimDescription(food["desc"]!),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      color: hexToColor("#FFFFFF"),
+                      letterSpacing: 3.5 / 100,
+                      height: 152 / 100,
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -12,7 +12,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String gender = 'Perempuan';
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
-  String apiUrl = 'http://127.0.0.1:5000/users';
+  String apiUrl = 'https://6cc5-210-210-144-170.ngrok-free.app/users';
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();

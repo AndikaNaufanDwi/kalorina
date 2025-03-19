@@ -15,7 +15,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _repeatPasswordController = TextEditingController();
+  final TextEditingController _repeatPasswordController =
+      TextEditingController();
 
   Future<void> _signUp() async {
     if (_passwordController.text != _repeatPasswordController.text) {
@@ -23,14 +24,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    var url = Uri.parse("http://127.0.0.1:5000/users");
+    var url = Uri.parse("https://6cc5-210-210-144-170.ngrok-free.app/users");
     var response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "nama": _usernameController.text,
         "email": _emailController.text,
-        "password": _passwordController.text
+        "password": _passwordController.text,
       }),
     );
 
@@ -55,7 +56,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 if (success) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
+                    MaterialPageRoute(builder: (context) => HomeScreen(i: 0)),
                   );
                 }
               },
@@ -79,7 +80,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               customText("Sign Up", fontSize: 30, fontWeight: FontWeight.bold),
               SizedBox(height: 8),
-              customText("Maintain your calories and stay healthy!", fontSize: 15),
+              customText(
+                "Maintain your calories and stay healthy!",
+                fontSize: 15,
+              ),
               SizedBox(height: 30),
               Column(
                 children: [

@@ -12,6 +12,9 @@ import 'package:projects_sehatin/utility/widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
+  final int i;
+
+  const HomeScreen({super.key, required this.i});
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -54,6 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadAccessToken();
+    setState(() {
+      _selectedIndex = widget.i;
+    });
   }
 
   String kebutuhanKalori = "0";

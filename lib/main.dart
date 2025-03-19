@@ -26,12 +26,12 @@ class MyApp extends StatelessWidget {
       ),
       home: SplashScreen(),
       routes: {
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => HomeScreen(i: 0),
         '/detail': (context) => DetailScreen(),
         '/selengkapnya': (context) => SelengkapnyaScreen(),
         '/favorite': (context) => FavoriteScreen(),
         '/profile': (context) => ProfileScreen(),
-        '/playlist': (context) => Playlist()
+        '/playlist': (context) => Playlist(),
       },
     );
   }

@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:projects_sehatin/utility/widget.dart';
 
 Future<String?> fetchUserName(int userId) async {
-  final url = Uri.parse('http://127.0.0.1:5000/users/$userId');
+  final url = Uri.parse(
+    'https://6cc5-210-210-144-170.ngrok-free.app/users/$userId',
+  );
   print('Fetching user name for ID: $userId from: $url');
 
   try {
@@ -158,7 +160,7 @@ Widget userInfoInput(
 }
 
 Future<List<Map<String, dynamic>>> fetchFirstFourFoodData() async {
-  final url = 'http://127.0.0.1:5000/makanan';
+  final url = 'https://6cc5-210-210-144-170.ngrok-free.app/makanan';
   print('Fetching data from: $url');
 
   try {
@@ -220,49 +222,43 @@ class FoodCard extends StatelessWidget {
             top: 70,
             left: 0,
             right: 0,
-            child: GestureDetector(
-              onTap: () {
-                print("Tapped with id ${id}");
-                Navigator.pushNamed(context, '/detail', arguments: food);
-              },
-              child: Container(
-                height: 150,
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                      offset: Offset(2, 4),
+            child: Container(
+              height: 150,
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                    offset: Offset(2, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    "$calories kkal",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade700,
                     ),
-                    SizedBox(height: 5),
-                    Text(
-                      "$calories kkal",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

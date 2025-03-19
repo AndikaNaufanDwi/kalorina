@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final url = Uri.parse("http://127.0.0.1:5000/login");
+    final url = Uri.parse("https://6cc5-210-210-144-170.ngrok-free.app/login");
 
     try {
       final response = await http.post(
@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Pindah ke halaman home
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (context) => HomeScreen(i: 0)),
           );
         } else {
           _showDialog("Login Gagal", "Token tidak ditemukan dalam respons.");
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (success) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(builder: (context) => HomeScreen(i: 0)),
                     );
                   }
                 },

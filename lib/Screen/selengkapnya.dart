@@ -9,19 +9,21 @@ class SelengkapnyaScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<SelengkapnyaScreen> {
- int selectedIndex = 0;
+  int selectedIndex = 0;
   List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> foods = [];
 
   Future<void> fetchCategories() async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:5000/kategori'));
+    final response = await http.get(
+      Uri.parse('https://6cc5-210-210-144-170.ngrok-free.app/kategori'),
+    );
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       setState(() {
-        categories = data.map((item) => {
-          "id": item['id'],
-          "name": item['nama'],
-        }).toList();
+        categories =
+            data
+                .map((item) => {"id": item['id'], "name": item['nama']})
+                .toList();
         if (categories.isNotEmpty) {
           fetchFoods(categories[0]['id']);
         }
@@ -32,20 +34,31 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
   }
 
   Future<void> fetchFoods(int idKategori) async {
-    final response = await http.get(Uri.parse('http://127.0.0.1:5000/makanan/kategori/$idKategori'));
+    final response = await http.get(
+      Uri.parse(
+        'https://6cc5-210-210-144-170.ngrok-free.app/makanan/kategori/$idKategori',
+      ),
+    );
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       setState(() {
-        foods = data.map((item) => {
-          "id": item['id'],
-          "name": item['nama'],
-          "desc": item['deskripsi']?.toString() ?? "No description available",
-          "calories": item['total_kalori']?.toString() ?? "0 kkal",
-          "image": item['image_url'] ?? "default.png",
-          "protein": item['protein']?.toString() ?? 0,
-          "fat": item['fat']?.toString() ?? 0,
-          "fibre": item['fibre']?.toString() ?? 0,
-        }).toList();
+        foods =
+            data
+                .map(
+                  (item) => {
+                    "id": item['id'],
+                    "name": item['nama'],
+                    "desc":
+                        item['deskripsi']?.toString() ??
+                        "No description available",
+                    "calories": item['total_kalori']?.toString() ?? "0 kkal",
+                    "image": item['image_url'] ?? "default.png",
+                    "protein": item['protein']?.toString() ?? 0,
+                    "fat": item['fat']?.toString() ?? 0,
+                    "fibre": item['fibre']?.toString() ?? 0,
+                  },
+                )
+                .toList();
       });
     } else {
       print("Failed to load foods");
@@ -120,13 +133,13 @@ class _HomeScreenState extends State<SelengkapnyaScreen> {
                       int index = categories.indexOf(category);
                       return GestureDetector(
                         onTap: () {
-                      setState(() {
-                        selectedIndex = index;
-                      });
-                      fetchFoods(category['id']);
-                    },
+                          setState(() {
+                            selectedIndex = index;
+                          });
+                          fetchFoods(category['id']);
+                        },
                         child: Text(
-                        category['name'],
+                          category['name'],
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:projects_sehatin/Screen/dashboard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -33,7 +34,9 @@ class _DetailScreenState extends State<DetailScreen> {
       return;
     }
 
-    final url = Uri.parse('http://127.0.0.1:5000/makanan/$makananId/like');
+    final url = Uri.parse(
+      'https://6cc5-210-210-144-170.ngrok-free.app/makanan/$makananId/like',
+    );
 
     try {
       final response = await http.put(
@@ -48,22 +51,30 @@ class _DetailScreenState extends State<DetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Berhasil menambahkan ke favorit!")),
         );
-          Navigator.pushNamed(context, '/favorite');
+        // Navigator.pushNamed(context, '/favorite');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(i: 2)),
+        );
+        //         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal menambahkan ke favorit: ${response.body}")),
+          SnackBar(
+            content: Text("Gagal menambahkan ke favorit: ${response.body}"),
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Terjadi kesalahan: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final food = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final food =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
     Color hexToColor(String hex) {
       hex = hex.replaceFirst('#', '');
@@ -106,10 +117,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   food["image"],
                   height: 220,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.image_not_supported,
-                      size: 200,
-                    );
+                    return Icon(Icons.image_not_supported, size: 200);
                   },
                   colorBlendMode: BlendMode.dstATop,
                 ),
@@ -125,9 +133,7 @@ class _DetailScreenState extends State<DetailScreen> {
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(30)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,10 +142,22 @@ class _DetailScreenState extends State<DetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _nutritionInfo("Calorie", food["calories"] + " kkal", Colors.red),
-                      _nutritionInfo("Protein", food["protein"] + " gm", Colors.black),
+                      _nutritionInfo(
+                        "Calorie",
+                        food["calories"] + " kkal",
+                        Colors.red,
+                      ),
+                      _nutritionInfo(
+                        "Protein",
+                        food["protein"] + " gm",
+                        Colors.black,
+                      ),
                       _nutritionInfo("Fat", food["fat"] + " gm", Colors.blue),
-                      _nutritionInfo("Fibre", food["fibre"] + " gm", Colors.green),
+                      _nutritionInfo(
+                        "Fibre",
+                        food["fibre"] + " gm",
+                        Colors.green,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 30),

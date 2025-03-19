@@ -8,7 +8,7 @@ Future<Map<String, dynamic>?> submitUserData(
   String gender,
   String token, // Tambahkan parameter token
 ) async {
-  final url = Uri.parse('http://127.0.0.1:5000/bmi');
+  final url = Uri.parse('https://6cc5-210-210-144-170.ngrok-free.app/bmi');
   final headers = {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer $token', // Tambahkan token di sini

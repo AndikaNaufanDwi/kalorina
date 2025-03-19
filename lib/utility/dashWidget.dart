@@ -1,6 +1,32 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projects_sehatin/utility/widget.dart';
+
+Future<String?> fetchUserName(int userId) async {
+  final url = Uri.parse('http://127.0.0.1:5000/users/$userId');
+  print('Fetching user name for ID: $userId from: $url');
+
+  try {
+    final response = await http.get(url);
+    print('Response status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      print('User data: $data');
+
+      return data['nama']; // Pastikan key sesuai dengan response dari API
+    } else {
+      print('Failed to fetch user name: ${response.body}');
+      return null;
+    }
+  } catch (e) {
+    print('Error fetching user name: $e');
+    return null;
+  }
+}
 
 Widget userInfoRow(
   String label,
@@ -131,7 +157,37 @@ Widget userInfoInput(
   );
 }
 
+Future<List<Map<String, dynamic>>> fetchFirstFourFoodData() async {
+  final url = 'http://127.0.0.1:5000/makanan';
+  print('Fetching data from: $url');
+
+  try {
+    final response = await http.get(Uri.parse(url));
+    print('Response status code: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      print('Fetched data: ${data.length} items');
+
+      // Urutkan berdasarkan ID terendah
+      data.sort((a, b) => (a['id'] as int).compareTo(b['id'] as int));
+
+      return data
+          .take(4)
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    } else {
+      print('Failed to fetch data: ${response.body}');
+      throw Exception('Failed to load food data');
+    }
+  } catch (e) {
+    print('Error fetching data: $e');
+    throw Exception('Failed to load food data');
+  }
+}
+
 class FoodCard extends StatelessWidget {
+  final int id;
   final String imagePath;
   final String title;
   final String calories;
@@ -141,13 +197,21 @@ class FoodCard extends StatelessWidget {
     required this.imagePath,
     required this.title,
     required this.calories,
+    required this.id,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final food = {
+      'id': id,
+      'imagePath': imagePath,
+      'title': title,
+      'calories': calories,
+    };
+
     return Container(
       width: 160,
-      height: 200,
+      height: 220,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -156,27 +220,29 @@ class FoodCard extends StatelessWidget {
             top: 70,
             left: 0,
             right: 0,
-            child: Container(
-              height: 150,
-              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                    offset: Offset(2, 4),
-                  ),
-                ],
-              ),
+            child: GestureDetector(
+              onTap: () {
+                print("Tapped with id ${id}");
+                Navigator.pushNamed(context, '/detail', arguments: food);
+              },
               child: Container(
-                width: 140,
+                height: 150,
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                      offset: Offset(2, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Food Title
                     Text(
                       title,
                       textAlign: TextAlign.center,
@@ -187,8 +253,6 @@ class FoodCard extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 5),
-
-                    // Calorie Count
                     Text(
                       "$calories kkal",
                       style: TextStyle(
@@ -202,8 +266,6 @@ class FoodCard extends StatelessWidget {
               ),
             ),
           ),
-
-          // Food Image Positioned Above
           Positioned(
             top: 0,
             left: 0,
@@ -211,11 +273,23 @@ class FoodCard extends StatelessWidget {
             child: Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(100),
-                child: Image.asset(
+                child: Image.network(
                   imagePath,
                   width: 140,
                   height: 140,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(child: CircularProgressIndicator());
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    print('Error loading image: $error');
+                    return Icon(
+                      Icons.broken_image,
+                      size: 80,
+                      color: Colors.grey,
+                    );
+                  },
                 ),
               ),
             ),

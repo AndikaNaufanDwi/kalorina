@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -12,19 +12,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String gender = 'Perempuan';
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
-  String token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MjMwNjg3OSwianRpIjoiMjU0MTc2MjEtYWJkMi00YmMwLTlmNWQtYTMwNzU3OWQ0MTlkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NDIzMDY4NzksImNzcmYiOiI1MjY5MGZhYi1lZWQzLTQ1ZDctYTkxMS0wNzM1MTkwMTIwNzgiLCJleHAiOjE3NDIzOTMyNzl9.F2ePkHW2C4Wvt99m1dtIY0qYkfqlphLTbChyItQwKw8';
   String apiUrl = 'http://127.0.0.1:5000/users';
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  String? _accessToken;
+
+  Future<void> _loadAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _accessToken = prefs.getString('access_token');
+    });
+    print(_accessToken);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccessToken();
+  }
 
   Future<void> updateUser() async {
     try {
       print('Updating user...');
       print('API URL: $apiUrl');
-      print('Token: $token');
 
       final Map<String, dynamic> requestBody = {
         "nama": "${firstNameController.text} ${lastNameController.text}",
@@ -39,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Uri.parse(apiUrl),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer ' + _accessToken.toString(),
         },
         body: jsonEncode(requestBody),
       );

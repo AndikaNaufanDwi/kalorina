@@ -8,6 +8,7 @@ import 'package:projects_sehatin/utility/bottomNavBar.dart';
 import 'package:projects_sehatin/utility/controller.dart';
 import 'package:projects_sehatin/utility/dashWidget.dart';
 import 'package:projects_sehatin/utility/widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -19,12 +20,44 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _tinggiController = TextEditingController();
   final TextEditingController _beratController = TextEditingController();
   final TextEditingController _tahunLahirController = TextEditingController();
-  String token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MjMwNjg3OSwianRpIjoiMjU0MTc2MjEtYWJkMi00YmMwLTlmNWQtYTMwNzU3OWQ0MTlkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NDIzMDY4NzksImNzcmYiOiI1MjY5MGZhYi1lZWQzLTQ1ZDctYTkxMS0wNzM1MTkwMTIwNzgiLCJleHAiOjE3NDIzOTMyNzl9.F2ePkHW2C4Wvt99m1dtIY0qYkfqlphLTbChyItQwKw8";
 
-  // State variables for calculated values
+  String? _accessToken;
+  int? idnya;
+  String? userName;
+
+  Future<void> _loadAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? storedId = prefs.getInt('id');
+    String? storedToken = prefs.getString('access_token');
+
+    setState(() {
+      _accessToken = storedToken;
+      idnya = storedId;
+    });
+
+    print("Access Token: $_accessToken");
+    print("ID: $idnya");
+
+    // Panggil fetchUserName hanya jika idnya tidak null
+    if (idnya != null) {
+      String? fetchedName = await fetchUserName(idnya!);
+      setState(() {
+        userName = fetchedName ?? "User tidak ditemukan";
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>>? _foodData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccessToken();
+  }
+
   String kebutuhanKalori = "0";
   String bmiCategory = "Unknown";
+  List<Map<String, dynamic>> foods = [];
 
   Future<void> handleSubmit() async {
     final response = await submitUserData(
@@ -32,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _beratController.text,
       _tinggiController.text,
       selectedGender,
-      token,
+      _accessToken ?? "",
     );
 
     if (response != null) {
@@ -50,8 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _getScreen(int index) {
     switch (index) {
-      case 0:
-        return _buildHomeContent();
       case 1:
         return FavoriteScreen();
       case 2:
@@ -110,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 customText(
-                  "Hello, Ayu",
+                  "Hello, ${userName}",
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2E9D9D),
@@ -129,7 +160,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 20),
 
-            // Info User
             Text(
               "Mari kita kurangi",
               style: TextStyle(
@@ -148,7 +178,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 20),
 
-            // User Info Container
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -164,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       selectedGender = newValue!;
                     });
                   }),
-
                   userInfoInput(
                     "Tinggi Badan:",
                     () => _tinggiController,
@@ -184,47 +212,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     "YYYY-MM-DD",
                   ),
 
-                  // Divider
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: Divider(
-                      thickness: 1.5,
-                      color: Colors.grey.shade400,
-                      height: 1,
-                    ),
-                  ),
+                  Divider(thickness: 1.5, color: Colors.grey.shade400),
 
-                  // Updated values based on input
-                  userInfoRow(
-                    "Kebutuhan:",
-                    kebutuhanKalori,
-                    " kkal",
-                    sizedBoxWidth: 130,
-                  ),
-                  userInfoRow(
-                    "Indikator BMI:",
-                    bmiCategory,
-                    "",
-                    sizedBoxWidth: 90,
-                  ),
+                  userInfoRow("Kebutuhan:", kebutuhanKalori, " kkal"),
+                  userInfoRow("Indikator BMI:", bmiCategory, ""),
+
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.center,
                     child: OutlinedButton(
                       onPressed: handleSubmit,
                       style: OutlinedButton.styleFrom(
                         backgroundColor: Color(0xFF2E9D9D),
-                        side: BorderSide(
-                          color: Color(0xFF2E9D9D),
-                          width: 1,
-                        ), // Outline hitam
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: EdgeInsets.symmetric(
-                          vertical: 0,
-                          horizontal: 5,
-                        ), // Padding
                       ),
                       child: customText(
                         "Cek",
@@ -237,8 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SizedBox(height: 30),
-
-            // Food Recommendations
             Text(
               "Rekomendasi Makanan",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -248,60 +247,65 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(color: Colors.black54),
             ),
 
-            // Food Cards
-            Column(
-              children: [
-                SingleChildScrollView(
+            SizedBox(height: 10),
+
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: fetchFirstFourFoodData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  ); // Loading indicator
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Gagal mengambil data makanan"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("Tidak ada data makanan"));
+                }
+
+                final foodList = snapshot.data!;
+
+                return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: Container(
-                    height: 250,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        FoodCard(
-                          imagePath: "assets/beranda_1.png",
-                          title: "Oatmeal Pisang dan Blueberry",
-                          calories: "89",
-                        ),
-                        Padding(padding: EdgeInsets.only(left: 20)),
-                        FoodCard(
-                          imagePath: "assets/beranda_2.png",
-                          title: "Ayam Panggang",
-                          calories: "175",
-                        ),
-                        Padding(padding: EdgeInsets.only(left: 20)),
-                        FoodCard(
-                          imagePath: "assets/beranda_2.png",
-                          title: "Ayam Panggang 2",
-                          calories: "175",
-                        ),
-                        Padding(padding: EdgeInsets.only(left: 20)),
-                        FoodCard(
-                          imagePath: "assets/beranda_2.png",
-                          title: "Burger tapi boong",
-                          calories: "175",
-                        ),
-                      ],
-                    ),
+                  child: Row(
+                    children:
+                        foodList.map((foodData) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: FoodCard(
+                              id: foodData['id'],
+                              imagePath:
+                                  foodData["image_url"] ??
+                                  "https://via.placeholder.com/140",
+                              title: foodData["nama"] ?? "Nama tidak tersedia",
+                              calories:
+                                  (foodData["total_kalori"]?.toString() ?? "0"),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                );
+              },
+            ),
+
+            SizedBox(height: 20),
+            Align(
+              alignment: Alignment.topRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, "/selengkapnya");
+                },
+                child: Text(
+                  "Lihat Selengkapnya",
+                  style: GoogleFonts.roboto(
+                    color: Colors.teal.shade700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, "/selengkapnya");
-                    },
-                    child: Text(
-                      "Lihat Selengkapnya",
-                      style: GoogleFonts.roboto(
-                        color: Colors.teal.shade700,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
